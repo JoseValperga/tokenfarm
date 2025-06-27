@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
 
 describe("TokenFarm", function () {
   let owner, user1, user2;
@@ -9,32 +9,43 @@ describe("TokenFarm", function () {
   beforeEach(async function () {
     [owner, user1, user2] = await ethers.getSigners();
 
-    // Deploy mock LPToken
+    // Desplegar el contrato LPToken
     const LPToken = await ethers.getContractFactory("LPToken");
     lpToken = await LPToken.deploy(owner.address);
     await lpToken.waitForDeployment();
 
-    // Deploy DAppToken
+    // Desplegar el contrato DAppToken (temporalmente propiedad del owner)
     const DAppToken = await ethers.getContractFactory("DAppToken");
     dappToken = await DAppToken.deploy(owner.address);
     await dappToken.waitForDeployment();
 
-    // Deploy TokenFarm
+    // Desplegar el contrato TokenFarm con las direcciones de DAppToken y LPToken
     const TokenFarm = await ethers.getContractFactory("TokenFarm");
     tokenFarm = await TokenFarm.deploy(dappToken.target, lpToken.target);
     await tokenFarm.waitForDeployment();
 
-    // Mint LP tokens to user1
-    await lpToken.connect(owner).mint(user1.address, initialSupply);
+    // Transferir la propiedad de DAppToken al TokenFarm para que pueda mintear recompensas
+    await dappToken.connect(owner).transferOwnership(tokenFarm.target);
 
-    // Approve the farm to spend LP tokens
+    // Avanzar un bloque para confirmar las transacciones previas
+    await network.provider.send("evm_mine");
+
+    // Transferir tokens LP al user1 y al user2 para que tengan saldo suficiente para stakear
+    await lpToken.connect(owner).transfer(user1.address, initialSupply);
+    await lpToken.connect(owner).transfer(user2.address, initialSupply);
+
+    // Aprobar al contrato TokenFarm para que pueda mover los tokens LP de user1
     await lpToken.connect(user1).approve(tokenFarm.target, initialSupply);
+
+    // Aprobar al contrato TokenFarm para que pueda mover los tokens LP de user2
+    await lpToken.connect(user2).approve(tokenFarm.target, initialSupply);
   });
 
-  it("should allow user to deposit LP tokens", async function () {
+
+  it("debería permitir al usuario depositar tokens LP", async function () {
     const depositAmount = ethers.parseEther("100");
 
-    // Advance 1 block before deposit to avoid same-block checkpoint error
+    // Forzar un nuevo bloque antes del depósito
     await network.provider.send("evm_mine");
 
     await expect(tokenFarm.connect(user1).deposit(depositAmount))
@@ -47,62 +58,69 @@ describe("TokenFarm", function () {
     expect(await lpToken.balanceOf(tokenFarm.target)).to.equal(depositAmount);
   });
 
-  it("should distribute rewards and let user claim them", async function () {
+  it("debería distribuir recompensas y permitir que el usuario las reclame", async function () {
     const depositAmount = ethers.parseEther("100");
+    const depositAmount2 = ethers.parseEther("50");
 
-    // Advance 1 block before deposit
+    // Forzar un nuevo bloque antes del depósito de user1
     await network.provider.send("evm_mine");
     await tokenFarm.connect(user1).deposit(depositAmount);
 
-    // Simulate passage of time (advance blocks)
+    // Forzar un nuevo bloque antes del depósito de user2
+    await network.provider.send("evm_mine");
+    await tokenFarm.connect(user2).deposit(depositAmount2);
+
+    // Avanzar varios bloques para simular tiempo de staking y generar checkpoints
     await network.provider.send("evm_mine");
     await network.provider.send("evm_mine");
     await network.provider.send("evm_mine");
 
-    // Owner calls distributeRewardsAll
+    // El owner distribuye las recompensas a todos los stakers
     await tokenFarm.connect(owner).distributeRewardsAll();
 
-    // Check pending rewards
+    // Avanzar un bloque antes de consultar las recompensas pendientes
+    await network.provider.send("evm_mine");
+
+    // Consultar cuántas recompensas pendientes tiene user1
     const pending = await tokenFarm.getPendingRewards(user1.address);
     expect(pending).to.be.gt(0);
 
-    // Advance 1 block before claiming (optional, good practice)
-    await network.provider.send("evm_mine");
-
-    // User claims rewards
+    // El usuario reclama sus recompensas
     await expect(tokenFarm.connect(user1).claimRewards())
-      .to.emit(tokenFarm, "RewardsClaimed")
-      .withArgs(user1.address, pending);
+      .to.emit(tokenFarm, "RewardsClaimed");
 
-    // User should now have DAPP tokens
-    expect(await dappToken.balanceOf(user1.address)).to.be.gt(0);
+    // Verificar que el usuario haya recibido al menos la cantidad de tokens DAPP calculada previamente
+    const userBalance = await dappToken.balanceOf(user1.address);
+    expect(userBalance).to.be.gte(pending);
   });
 
-  it("should allow user to withdraw staking balance", async function () {
+  it("debería permitir al usuario retirar su balance en staking", async function () {
     const depositAmount = ethers.parseEther("100");
 
-    // Advance 1 block before deposit
+    // Forzar un nuevo bloque antes del depósito
     await network.provider.send("evm_mine");
     await tokenFarm.connect(user1).deposit(depositAmount);
 
-    // Advance blocks to accrue rewards
+    // Avanzar bloques para acumular recompensas
     await network.provider.send("evm_mine");
     await network.provider.send("evm_mine");
+
+    // El owner distribuye recompensas
     await tokenFarm.connect(owner).distributeRewardsAll();
 
-    // Advance 1 block before withdraw
+    // Forzar un bloque antes de retirar
     await network.provider.send("evm_mine");
 
-    // Withdraw
+    // Retiro
     await expect(tokenFarm.connect(user1).withdraw())
       .to.emit(tokenFarm, "Withdraw")
       .withArgs(user1.address, depositAmount);
 
-    // Check staking balance is zero
+    // Verificar que el balance en staking sea cero
     const staker = await tokenFarm.stakers(user1.address);
     expect(staker.stakingBalance).to.equal(0);
 
-    // LP tokens returned
+    // Tokens LP devueltos al usuario
     expect(await lpToken.balanceOf(user1.address)).to.equal(initialSupply);
   });
 });

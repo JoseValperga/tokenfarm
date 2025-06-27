@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.27;
 
 import "./DappToken.sol";
 import "./LPToken.sol";
@@ -126,10 +126,13 @@ contract TokenFarm {
         // Si checkpoints del usuario está vacío, inicializarlo con el número de bloque actual.
         if (staker.checkpoint == 0) {
             staker.checkpoint = block.number;
+        } else {
+            // Si ya tiene un checkpoint, llamar a distributeRewards para calcular recompensas pendientes.
+            distributeRewards(msg.sender);
         }
 
         // Llamar a distributeRewards para calcular y actualizar las recompensas pendientes.
-        distributeRewards(msg.sender);
+        //distributeRewards(msg.sender);
 
         // Emitir un evento de depósito.
         emit Deposit(msg.sender, _amount);
@@ -206,7 +209,7 @@ contract TokenFarm {
      */
     function distributeRewardsAll() external onlyOwner {
         // Verificar que la llamada sea realizada por el owner.
-        // require(msg.sender == owner, "Only owner can distribute rewards");
+        require(msg.sender == owner, "Only owner can distribute rewards");
 
         // Verificar que totalStakingBalance sea mayor a 0.
         require(totalStakingBalance > 0, "No staking balance available");
