@@ -1,5 +1,9 @@
-const { expect } = require("chai");
-const { ethers, network } = require("hardhat");
+import chai from "chai";
+const { expect } = chai;
+
+import hardhat from "hardhat";
+const { ethers } = hardhat;
+
 
 describe("TokenFarm", function () {
   let owner, user1, user2;
