@@ -3,7 +3,7 @@ import "@nomicfoundation/hardhat-toolbox";
 
 import * as dotenv from "dotenv";
 dotenv.config();
-/*
+
 const {
   SEPOLIA_RPC_URL,
   OWNER_PRIVATE_KEY,
@@ -16,7 +16,6 @@ if (!SEPOLIA_RPC_URL || !OWNER_PRIVATE_KEY || !ETHERSCAN_API_KEY) {
   );
   process.exit(1);
 }
-*/
 
 const config = {
   solidity: "0.8.28",
@@ -24,7 +23,7 @@ const config = {
     localhost: {
       url: "http://127.0.0.1:8545"
     },
-    /*sepolia: {
+    sepolia: {
       url: SEPOLIA_RPC_URL,
       accounts: [process.env.OWNER_PRIVATE_KEY],
     },
@@ -32,7 +31,7 @@ const config = {
   etherscan: {
     apiKey: {
       sepolia: process.env.ETHERSCAN_API_KEY,
-    },*/
+    },
   },
   gasReporter: {
     currency: "USD",

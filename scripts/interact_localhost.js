@@ -5,39 +5,27 @@ dotenv.config();
 
 async function main() {
   //
-  // ✅ 1️⃣ Leer variables de entorno
+  // ✅ 1️⃣ Leer direcciones de contratos desde .env
   //
-  const rpcUrl = process.env.SEPOLIA_RPC_URL;
-  const ownerKey = process.env.OWNER_PRIVATE_KEY;
-  const user1Key = process.env.USER1_PRIVATE_KEY;
-  const user2Key = process.env.USER2_PRIVATE_KEY;
   const tokenFarmAddress = process.env.TOKENFARM_ADDRESS;
   const lpTokenAddress = process.env.LPTOKEN_ADDRESS;
   const dappTokenAddress = process.env.DAPPTOKEN_ADDRESS;
-  const FEE_PERCENTAGE = 500; // 5% fee
-  const REWARD_PER_BLOCK = ethers.parseEther("1"); // 1 DAPP per block
 
-  if (!rpcUrl || !ownerKey || !user1Key || !user2Key) {
-    throw new Error("❌ Faltan claves privadas en .env");
-  }
   if (!tokenFarmAddress || !lpTokenAddress || !dappTokenAddress) {
     throw new Error("❌ Faltan direcciones de contratos en .env");
   }
 
   //
-  // ✅ 2️⃣ Crear provider y wallets
+  // ✅ 2️⃣ Obtener signers locales
   //
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
-  const owner = new ethers.Wallet(ownerKey, provider);
-  const user1 = new ethers.Wallet(user1Key, provider);
-  const user2 = new ethers.Wallet(user2Key, provider);
+  const [owner, user1, user2] = await ethers.getSigners();
 
   console.log(`👑 Owner: ${owner.address}`);
   console.log(`👤 User1: ${user1.address}`);
   console.log(`👤 User2: ${user2.address}`);
 
   //
-  // ✅ 3️⃣ Obtener contratos ya desplegados
+  // ✅ 3️⃣ Conectar contratos
   //
   const TokenFarm = await ethers.getContractFactory("TokenFarm");
   const LPToken = await ethers.getContractFactory("LPToken");
@@ -58,60 +46,48 @@ async function main() {
   // ✅ 4️⃣ OWNER: Configurar rewardPerBlock y feePercentage
   //
   console.log("\n👑 Owner configurando parámetros...");
-  await (await tokenFarmOwner.setRewardPerBlock(REWARD_PER_BLOCK)).wait();
-  await (await tokenFarmOwner.setFeePercentage(FEE_PERCENTAGE)).wait(); // 5% fee
+  await tokenFarmOwner.setRewardPerBlock(ethers.parseEther("1"));
+  await tokenFarmOwner.setFeePercentage(500); // 5% fee
   console.log("✅ Owner configuró rewardPerBlock y feePercentage.\n");
 
   //
-  // ✅ 5️⃣ USERS: Ver balance LP inicial
+  // ✅ 5️⃣ Ver balances LP iniciales
   //
-  let balanceUser1 = await lpTokenUser1.balanceOf(user1.address);
-  let balanceUser2 = await lpTokenUser2.balanceOf(user2.address);
-
-  console.log(`💰 User1 LP balance antes de transferir: ${ethers.formatEther(balanceUser1)} LP`);
-  console.log(`💰 User2 LP balance antes de transferir: ${ethers.formatEther(balanceUser2)} LP`);
+  console.log(`💰 LP Owner balance: ${ethers.formatEther(await lpTokenOwner.balanceOf(owner.address))} LP`);
+  console.log(`💰 User1 LP balance: ${ethers.formatEther(await lpTokenUser1.balanceOf(user1.address))} LP`);
+  console.log(`💰 User2 LP balance: ${ethers.formatEther(await lpTokenUser2.balanceOf(user2.address))} LP`);
 
   //
-  // ✅ 6️⃣ OWNER: Transferir LP tokens solo si faltan
+  // ✅ 6️⃣ Transferencia inicial de LP del owner a los users
   //
-  const desiredUser1 = ethers.parseEther("100");
-  const desiredUser2 = ethers.parseEther("50");
-
-  if (balanceUser1 < desiredUser1) {
-    const diff = desiredUser1 - balanceUser1;
-    console.log(`\n👑 Owner transfiriendo ${ethers.formatEther(diff)} LP a User1...`);
-    await (await lpTokenOwner.transfer(user1.address, diff)).wait();
-  }
-
-  if (balanceUser2 < desiredUser2) {
-    const diff = desiredUser2 - balanceUser2;
-    console.log(`\n👑 Owner transfiriendo ${ethers.formatEther(diff)} LP a User2...`);
-    await (await lpTokenOwner.transfer(user2.address, diff)).wait();
-  }
+  console.log("\n👑 Owner transfiriendo LP tokens a User1 y User2...");
+  await lpTokenOwner.transfer(user1.address, ethers.parseEther("100"));
+  await lpTokenOwner.transfer(user2.address, ethers.parseEther("50"));
+  console.log("✅ Transferencias realizadas.\n");
 
   //
-  // ✅ 7️⃣ USERS: Ver balances post-transferencia
+  // ✅ 7️⃣ Ver balances LP después de transferir
   //
-  balanceUser1 = await lpTokenUser1.balanceOf(user1.address);
-  balanceUser2 = await lpTokenUser2.balanceOf(user2.address);
-
-  console.log(`💰 User1 LP balance después de transferir: ${ethers.formatEther(balanceUser1)} LP`);
-  console.log(`💰 User2 LP balance después de transferir: ${ethers.formatEther(balanceUser2)} LP\n`);
+  console.log(`💰 User1 LP balance: ${ethers.formatEther(await lpTokenUser1.balanceOf(user1.address))} LP`);
+  console.log(`💰 User2 LP balance: ${ethers.formatEther(await lpTokenUser2.balanceOf(user2.address))} LP`);
 
   //
-  // ✅ 8️⃣ USERS: Aprobar LP tokens al TokenFarm
+  // ✅ 8️⃣ Aprobar LP tokens al TokenFarm
   //
-  console.log("✍️  Users aprobando LP tokens al TokenFarm...");
-  await (await lpTokenUser1.approve(tokenFarmAddress, balanceUser1)).wait();
-  await (await lpTokenUser2.approve(tokenFarmAddress, balanceUser2)).wait();
+  const depositAmountUser1 = ethers.parseEther("100");
+  const depositAmountUser2 = ethers.parseEther("50");
+
+  console.log("\n✍️  Users aprobando LP tokens al TokenFarm...");
+  await lpTokenUser1.approve(tokenFarmAddress, depositAmountUser1);
+  await lpTokenUser2.approve(tokenFarmAddress, depositAmountUser2);
   console.log("✅ Approvals realizados.\n");
 
   //
-  // ✅ 9️⃣ USERS: Depositar LP tokens en staking
+  // ✅ 9️⃣ Depositar LP tokens en staking
   //
   console.log("✍️  Users depositando en staking...");
-  await (await tokenFarmUser1.deposit(balanceUser1)).wait();
-  await (await tokenFarmUser2.deposit(balanceUser2)).wait();
+  await tokenFarmUser1.deposit(depositAmountUser1);
+  await tokenFarmUser2.deposit(depositAmountUser2);
   console.log("✅ Depósitos completados.\n");
 
   //
@@ -124,22 +100,15 @@ async function main() {
   console.log(`📈 User2 staking balance: ${ethers.formatEther(staker2.stakingBalance)} LP\n`);
 
   //
-  // ✅ 11️⃣ OWNER: Distribuir recompensas a todos los stakers
+  // ✅ 11️⃣ OWNER: Distribuir recompensas
   //
-
-  console.log("⏳ Esperando 15 segundos para el siguiente bloque en Sepolia...");
-  await new Promise((resolve) => setTimeout(resolve, 15000));
-
   console.log("👑 Owner distribuyendo recompensas...");
-  await (await tokenFarmOwner.distributeRewardsAll()).wait();
+  await tokenFarmOwner.distributeRewardsAll();
   console.log("✅ Recompensas distribuidas.\n");
 
   //
-  // ✅ 12️⃣ USERS: Consultar recompensas pendientes
+  // ✅ 12️⃣ Consultar recompensas pendientes
   //
-  console.log("⏳ Esperando 15 segundos antes de claimRewards para el siguiente bloque en Sepolia...");
-  await new Promise((resolve) => setTimeout(resolve, 15000));
-
   const pending1 = await tokenFarmUser1.getPendingRewards(user1.address);
   const pending2 = await tokenFarmUser2.getPendingRewards(user2.address);
 
@@ -147,11 +116,11 @@ async function main() {
   console.log(`🎁 User2 recompensas pendientes: ${ethers.formatEther(pending2)} DAPP\n`);
 
   //
-  // ✅ 13️⃣ USERS: Reclamar recompensas
+  // ✅ 13️⃣ Reclamar recompensas
   //
   console.log("✍️  Users reclamando recompensas...");
-  await (await tokenFarmUser1.claimRewards()).wait();
-  await (await tokenFarmUser2.claimRewards()).wait();
+  await tokenFarmUser1.claimRewards();
+  await tokenFarmUser2.claimRewards();
   console.log("✅ Recompensas reclamadas.\n");
 
   //
@@ -164,11 +133,11 @@ async function main() {
   console.log(`💰 User2 DAPP balance: ${ethers.formatEther(dappBalanceUser2)} DAPP\n`);
 
   //
-  // ✅ 15️⃣ USERS: Retirar staking
+  // ✅ 15️⃣ Retirar staking
   //
   console.log("✍️  Users retirando staking...");
-  await (await tokenFarmUser1.withdraw()).wait();
-  await (await tokenFarmUser2.withdraw()).wait();
+  await tokenFarmUser1.withdraw();
+  await tokenFarmUser2.withdraw();
   console.log("✅ Retiros completados.\n");
 
   //
@@ -178,18 +147,18 @@ async function main() {
   console.log(`💰 User2 LP final: ${ethers.formatEther(await lpTokenUser2.balanceOf(user2.address))} LP\n`);
 
   //
-  // ✅ 17️⃣ OWNER: Ver y retirar fees acumulados
+  // ✅ 17️⃣ OWNER: Retirar fees acumulados
   //
   const fees = await tokenFarmOwner.accumulatedFees();
   console.log(`🏦 Fees acumulados en el contrato: ${ethers.formatEther(fees)} DAPP`);
 
   if (fees > 0n) {
     console.log("👑 Owner retirando fees...");
-    await (await tokenFarmOwner.withdrawAccumulatedFees(owner.address)).wait();
+    await tokenFarmOwner.withdrawAccumulatedFees(owner.address);
     console.log("✅ Fees retirados al owner.");
   }
 
-  console.log("\n🎯 ✅ Interacción COMPLETA con TokenFarm en SEPOLIA!");
+  console.log("\n🎯 ✅ Interacción COMPLETA con TokenFarm en LOCALHOST!");
 }
 
 main().catch((error) => {
