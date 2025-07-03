@@ -1,8 +1,8 @@
 
 ---
 
-# 📜 Explicación previa completa del sistema TokenFarm
-# [➡️ Más adelante ver explicación técnica completa del proyecto](#detalle-tecnico)
+# 📜 Explicación breve del sistema TokenFarm
+## [➡️ Ver Detalles Técnicos (instalacion - pruebas - interacción) más adelante](#detalles-técnicos)
 
 ## 🌱 1️⃣ ¿Qué es este sistema de TokenFarm?
 
@@ -18,18 +18,18 @@
 
 TokenFarm permite a cualquier usuario:
 
-✅ Aprobar el contrato para mover sus LP tokens.
-✅ Depositar LP tokens en el contrato (staking).
-✅ Acumular recompensas en DAPP por cada bloque minado mientras stakea.
-✅ Reclamar esas recompensas cuando quiera.
-✅ Retirar sus LP tokens del staking.
+* ✅ Aprobar el contrato para mover sus LP tokens.
+* ✅ Depositar LP tokens en el contrato (staking).
+* ✅ Acumular recompensas en DAPP por cada bloque minado mientras stakea.
+* ✅ Reclamar esas recompensas cuando quiera.
+* ✅ Retirar sus LP tokens del staking.
 
 Además, el **owner** del contrato puede:
 
-✅ Configurar cuántos DAPP se distribuyen por bloque (`rewardPerBlock`).
-✅ Configurar el porcentaje de fee que se cobra al usuario al reclamar recompensas (`feePercentage`).
-✅ Retirar los fees acumulados en DAPP.
-✅ Distribuir las recompensas acumuladas a todos los stakers.
+* ✅ Configurar cuántos DAPP se distribuyen por bloque (`rewardPerBlock`).
+* ✅ Configurar el porcentaje de fee que se cobra al usuario al reclamar recompensas (`feePercentage`).
+* ✅ Retirar los fees acumulados en DAPP.
+* ✅ Distribuir las recompensas acumuladas a todos los stakers.
 
 ---
 
@@ -60,13 +60,13 @@ DAppToken es **la recompensa**.
 
 ## 🔗 5️⃣ ¿Cómo fluye la experiencia del usuario?
 
-1️⃣ El usuario obtiene LP tokens (fuera del contrato, por ejemplo, en un DEX).
-2️⃣ Aprueba el contrato TokenFarm para usar sus LP.
-3️⃣ Hace **stake** (los deposita en TokenFarm).
-4️⃣ Espera mientras se minan bloques.
-5️⃣ Recompensas en DAPP se van acumulando.
-6️⃣ Reclama esas recompensas cuando quiera.
-7️⃣ Retira sus LP tokens del staking cuando quiera.
+* 1️⃣ El usuario obtiene LP tokens (fuera del contrato, por ejemplo, en un DEX).
+* 2️⃣ Aprueba el contrato TokenFarm para usar sus LP.
+* 3️⃣ Hace **stake** (los deposita en TokenFarm).
+* 4️⃣ Espera mientras se minan bloques.
+* 5️⃣ Recompensas en DAPP se van acumulando.
+* 6️⃣ Reclama esas recompensas cuando quiera.
+* 7️⃣ Retira sus LP tokens del staking cuando quiera.
 
 ---
 
@@ -74,10 +74,10 @@ DAppToken es **la recompensa**.
 
 El **owner del contrato** tiene privilegios de administración:
 
-✅ Cambiar la recompensa por bloque (más o menos incentivo).
-✅ Ajustar el porcentaje de fee cobrado a los usuarios al reclamar.
-✅ Distribuir las recompensas acumuladas a todos los stakers (con un botón en tu frontend).
-✅ Cobrar los fees acumulados para la tesorería del proyecto.
+* ✅ Cambiar la recompensa por bloque (más o menos incentivo).
+* ✅ Ajustar el porcentaje de fee cobrado a los usuarios al reclamar.
+* ✅ Distribuir las recompensas acumuladas a todos los stakers (con un botón en tu frontend).
+* ✅ Cobrar los fees acumulados para la tesorería del proyecto.
 
 ---
 
@@ -85,14 +85,14 @@ El **owner del contrato** tiene privilegios de administración:
 
 El objetivo de este contrato es:
 
-✅ Incentivar que los usuarios bloqueen sus LP tokens (liquidez) durante tiempo.
-✅ Recompensarlos con un token propio (DAPP).
-✅ Cobrar una pequeña comisión (fee) cada vez que reclaman, para financiar el proyecto o el owner.
+* ✅ Incentivar que los usuarios bloqueen sus LP tokens (liquidez) durante tiempo.
+* ✅ Recompensarlos con un token propio (DAPP).
+* ✅ Cobrar una pequeña comisión (fee) cada vez que reclaman, para financiar el proyecto o el owner.
 
 Es un patrón clásico de **staking incentivado**, muy usado en DeFi para "premiar" a los proveedores de liquidez y sostener el ecosistema.
 
 ---
-# 📝Detalle Técnico
+# Detalles Técnicos
 
 ---
 
@@ -100,11 +100,11 @@ Es un patrón clásico de **staking incentivado**, muy usado en DeFi para "premi
 
 **Proyecto Solidity + Hardhat para deploy y test de un contrato inteligente de staking en Sepolia.**  
 Incluye:
-✅ Contrato TokenFarm + DAppToken + LPToken.  
-✅ Scripts de deploy con Hardhat Ignition.  
-✅ Scripts de interacción.  
-✅ Test suite con Hardhat.  
-✅ Listo para integrar un frontend con React.
+* ✅ Contrato TokenFarm + DAppToken + LPToken.  
+* ✅ Scripts de deploy con Hardhat Ignition.  
+* ✅ Scripts de interacción.  
+* ✅ Test suite con Hardhat.  
+* ✅ Listo para integrar un frontend con React.
 
 ---
 
@@ -204,7 +204,7 @@ npm install
 
 ---
 
-## Configuración del entorno para deploy en localhost(.env) - Ver Deploy local para indicaciones
+## Configuración del entorno para deploy en localhost(.env) - [Ver Deploy local para indicaciones](#deploy-local)
 
 Renombra el archivo _hardhat.config.js como hardhat.config.js. Crea un archivo `.env` en la raíz del proyecto con:
 
@@ -217,7 +217,7 @@ DAPPTOKEN_ADDRESS=...
 ```
 ---
 
-## Configuración del entorno para deploy en Sepolia(.env) - Ver Deploy a Sepolia para indicaciones
+## Configuración del entorno para deploy en Sepolia(.env) - [Ver Deploy a Sepolia para indicaciones](#deploy-a-sepolia)
 
 Debes utilizar el archivo hardhat.config.js original. Crea un archivo `.env` en la raíz del proyecto con:
 
@@ -356,13 +356,14 @@ npx hardhat run scripts/interact_localhost.js --network localhost
 
 ## Interacción en Sepolia
 
-⚠️ IMPORTANTE: Sepolia no mina bloques al instante.
-✅ El script incluye **pausas de 15 segundos** para esperar nuevos bloques entre:
+⚠️ **IMPORTANTE: Sepolia no mina bloques al instante.**
 
+✅ El script incluye **pausas de 15 segundos** para esperar nuevos bloques entre:
 * Depositar y distribuir recompensas.
 * Distribuir recompensas y claim de recompensas.
 
-⚠️ ⚠️ Pueden surgir fallas si Sepolia está muy "lenta". Puedes cambiar la espera a 30 o 45 segundos. De todas formas, al funcionar en localhost sin fallas, se confirma el correcto funcionamiento del cont
+⚠️ Pueden surgir fallas si Sepolia está muy "lenta". Puedes cambiar la espera a 30 o 45 segundos. 
+* De todas formas, al funcionar en localhost sin fallas, se confirma el correcto funcionamiento del contrato.
 
 ✅ Ejecutar:
 
