@@ -1,5 +1,102 @@
 
-# 🪙 TokenFarm – Staking Platform
+---
+
+# 📜 Explicación previa completa del sistema TokenFarm
+# [➡️ Más adelante ver explicación técnica completa del proyecto](#detalle-tecnico)
+
+## 🌱 1️⃣ ¿Qué es este sistema de TokenFarm?
+
+**TokenFarm** es un smart contract que implementa un sistema de **staking de tokens LP** con recompensas en **tokens DAPP**.
+
+* **LPToken** = Token que el usuario debe bloquear (stakear) para participar.
+* **DAppToken** = Token que el usuario recibe como recompensa por participar.
+* **TokenFarm** = El contrato que gestiona todo el staking, el reparto de recompensas y el cobro de fees.
+
+---
+
+## 🪴 2️⃣ ¿Qué hace el contrato TokenFarm?
+
+TokenFarm permite a cualquier usuario:
+
+✅ Aprobar el contrato para mover sus LP tokens.
+✅ Depositar LP tokens en el contrato (staking).
+✅ Acumular recompensas en DAPP por cada bloque minado mientras stakea.
+✅ Reclamar esas recompensas cuando quiera.
+✅ Retirar sus LP tokens del staking.
+
+Además, el **owner** del contrato puede:
+
+✅ Configurar cuántos DAPP se distribuyen por bloque (`rewardPerBlock`).
+✅ Configurar el porcentaje de fee que se cobra al usuario al reclamar recompensas (`feePercentage`).
+✅ Retirar los fees acumulados en DAPP.
+✅ Distribuir las recompensas acumuladas a todos los stakers.
+
+---
+
+## 💰 3️⃣ LPToken: ¿Para qué sirve?
+
+LPToken es el **activo que los usuarios stakean**.
+
+* El usuario debe tener LP tokens en su wallet.
+* Los aprueba y los deposita en el TokenFarm.
+* Esos LP tokens quedan bloqueados en el contrato hasta que el usuario los retire.
+
+👉 El staking de LP tokens es la base para generar recompensas en DAPP.
+
+---
+
+## 🎁 4️⃣ DAppToken: ¿Para qué sirve?
+
+DAppToken es **la recompensa**.
+
+* El contrato reparte DAPP a los usuarios que hacen staking.
+* El owner decide cuántos DAPP se dan por bloque.
+* Al reclamar recompensas, se cobra un fee (en DAPP) que queda en el contrato.
+* El owner puede retirar los fees acumulados.
+
+👉 Así, DAPP incentiva a los usuarios a stakear LP.
+
+---
+
+## 🔗 5️⃣ ¿Cómo fluye la experiencia del usuario?
+
+1️⃣ El usuario obtiene LP tokens (fuera del contrato, por ejemplo, en un DEX).
+2️⃣ Aprueba el contrato TokenFarm para usar sus LP.
+3️⃣ Hace **stake** (los deposita en TokenFarm).
+4️⃣ Espera mientras se minan bloques.
+5️⃣ Recompensas en DAPP se van acumulando.
+6️⃣ Reclama esas recompensas cuando quiera.
+7️⃣ Retira sus LP tokens del staking cuando quiera.
+
+---
+
+## 👑 6️⃣ ¿Qué puede hacer el owner?
+
+El **owner del contrato** tiene privilegios de administración:
+
+✅ Cambiar la recompensa por bloque (más o menos incentivo).
+✅ Ajustar el porcentaje de fee cobrado a los usuarios al reclamar.
+✅ Distribuir las recompensas acumuladas a todos los stakers (con un botón en tu frontend).
+✅ Cobrar los fees acumulados para la tesorería del proyecto.
+
+---
+
+## 🧭 7️⃣ Idea general del incentivo
+
+El objetivo de este contrato es:
+
+✅ Incentivar que los usuarios bloqueen sus LP tokens (liquidez) durante tiempo.
+✅ Recompensarlos con un token propio (DAPP).
+✅ Cobrar una pequeña comisión (fee) cada vez que reclaman, para financiar el proyecto o el owner.
+
+Es un patrón clásico de **staking incentivado**, muy usado en DeFi para "premiar" a los proveedores de liquidez y sostener el ecosistema.
+
+---
+# 📝Detalle Técnico
+
+---
+
+# 🪙 TokenFarm – Staking Platform - Detalle del proyecto
 
 **Proyecto Solidity + Hardhat para deploy y test de un contrato inteligente de staking en Sepolia.**  
 Incluye:
